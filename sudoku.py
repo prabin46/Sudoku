@@ -5,7 +5,7 @@ import copy
 
 
 def find_next_empty(puzzle):
-    for r in range(9):  # range(9) is 0, 1, 2, 3, ... 8
+    for r in range(9):      # range(9) is 0, 1, 2, 3, ... 8
         for c in range(9):
             if puzzle[r][c] == 0:
                 return r, c
@@ -21,7 +21,7 @@ def is_valid(puzzle, guess, row, col):
     # checking row
     row_vals = puzzle[row]
     if guess in row_vals:
-        return False    # if we've repeated, then our guess is not valid!
+        return False # if we've repeated, then our guess is not valid!
 
     # checking columns
     col_vals = [puzzle[i][col] for i in range(9)]
@@ -45,60 +45,45 @@ def solve_sudoku(puzzle):
     # return whether a solution exists
     # mutates puzzle to be the solution ( if solution exits)
 
-    # step 1: choose somewhere on the puzzle to make a guess
+    # choose somewhere on the puzzle to make a guess
     row, col = find_next_empty(puzzle)
 
-    # Step 1.1 if there's nowhere left, then we're done because we only allowed valid inputs
+    # if there's nowhere left, then we're done because we only allowed valid inputs
     if row is None:     # this is true if our find_next_empty function returns None, None
         return True
 
-    # step 2: if there is a place to put a number, then make a guess  between 1 and 9
-    for guess in range(1, 10):      # range(1, 10) is 1, 2, 3,...9
-        # step 3: check if this is a valid guess
+    # if there is a place to put a number, then make a guess  between 1 and 9
+    for guess in range(1, 10):  # range(1, 10) is 1, 2, 3,...9
+        # check if this is a valid guess
         if is_valid(puzzle, guess, row, col):
-            # step 3.1: if this is a valid guess, then place it at that spot on the puzzle
+            # if this is a valid guess, then place it at that spot on the puzzle
             puzzle[row][col] = guess
             computer_game_solution.append([row, col, guess])
 
-            # time.sleep(1)
-            # print_board(example_board)
-            # step 4: then we recursively call our solver!
+
+            # then we recursively call our solver!
             if solve_sudoku(puzzle):
                 return True
 
-        # step 5: if not valid or if nothing gets returned true, then we need to backtrack and try a new number
+        # if not valid or if nothing gets returned true, then we need to backtrack and try a new number
         puzzle[row][col] = 0
         for i in range(len(computer_game_solution)):
-            if(computer_game_solution[i][0] == row and computer_game_solution[i][1] == col):
+            if computer_game_solution[i][0] == row and computer_game_solution[i][1] == col:
                 computer_game_solution.pop(i)
 
-    # step 6: if none of the numbers that we try work, then this puzzle is UNSOLVABLE!!!
+    # if none of the numbers that we try work, then this puzzle is UNSOLVABLE!!!
     return False
 
-def print_board(puzzle):
-    for i in range(9):
-        if i % 3 == 0 and i != 0:
-            print("- - - - - - - - - - - - ")
-
-        for j in range(len(puzzle[0])):
-            if j % 3 == 0 and j != 0:
-                print(" | ", end="")
-
-            if j == 8:
-                print(puzzle[i][j])
-            else:
-                print(str(puzzle[i][j]) + " ", end="")
 
 def display_suggestion():
     board_for_computer = copy.deepcopy(board)
-    solve_sudoku(board_for_computer)
-    print(computer_game_solution[0])
+    computer_game_solution.clear()
+    if solve_sudoku(board_for_computer):
+        # print(computer_game_solution[0])
+        number_press_event(board, computer_game_solution[0][2], computer_game_solution[0][0], computer_game_solution[0][1])
+    else:
+        print("Problem not solved")
 
-
-def print_computer_game_solution():
-    print("Computer result set")
-    for i in range(len(computer_game_solution)):
-        print(computer_game_solution[i][0], computer_game_solution[i][1], computer_game_solution[i][2])
 
 if __name__ == '__main__':
     example_board =[
@@ -130,10 +115,13 @@ if __name__ == '__main__':
     LINE_WIDTH_THIN = 2
     RED = (255, 0, 0)
     BLUE = (0, 0, 255)
+    SELECED = (67, 224, 172)
     BG_COLOR = (28, 170, 156)
     LINE_COLOR = (23, 145, 135)
 
     font = pygame.font.SysFont(None, 80)
+    font_alert = pygame.font.SysFont(None, 22)
+    font_alert_erase = pygame.font.SysFont(None, 22)
 
     global clicked_row
     global clicked_col
@@ -151,12 +139,8 @@ if __name__ == '__main__':
     screen.fill(BG_COLOR) # set the background color as BG_COLOR
 
     # Creating Game board
-    board = np.zeros((BOARD_ROWS, BOARD_COLS))
-    board = example_board
-    #board_for_computer = copy.deepcopy(example_board)
+    board = copy.deepcopy(example_board)
 
-
-    #print(board)
 
     # Drawing lines for the board
     def draw_lines():
@@ -179,7 +163,7 @@ if __name__ == '__main__':
             for col in range(BOARD_COLS):
                 output = int(board[row][col])
                 if output == 0:
-                    n_text = font.render(str(" "), True, pygame.Color(BLUE))
+                    n_text = font.render(str(" "), True, pygame.Color(SELECED))
                 else:
                     n_text = font.render(str(output), True, pygame.Color('white'))
 
@@ -198,6 +182,7 @@ if __name__ == '__main__':
             for col in range(BOARD_COLS):
                 if board[row][col] == 0:
                     return False
+        print("You Won!")
         return True
 
     def number_press_event(board, number, row, col):
@@ -207,22 +192,13 @@ if __name__ == '__main__':
             draw_numbers()
             #tracking user Input
             player_game_solution.append([row, col, number])
+            alert_message = font_alert_erase.render("Invalid   Number", True, pygame.Color(BG_COLOR))
+            screen.blit(alert_message, [9, 3])
+            is_board_full()
 
         else:
-            print("Invalid Number...!")
-
-    def display_player_game_solution():
-        for row in range(len(player_game_solution)):
-            for col in range(len(player_game_solution[0])):
-                print(player_game_solution[row][col], end=" ")
-            print(",", end=" ")
-
-    def one_step_back():
-        last_step = player_game_solution.pop(len(player_game_solution) - 1)
-        #print(last_step)
-        mark_square(last_step[0], last_step[1], 0)
-        draw_numbers()
-        #print("Number has been drawn")
+            alert_message = font_alert.render("Invalid   Number", True, pygame.Color('white'))
+            screen.blit(alert_message, [9, 3])
 
 
 
@@ -247,7 +223,7 @@ if __name__ == '__main__':
                 clicked_row = int(mouseY // BLOCK_HEIGHT)
                 clicked_col = int(mouseX // BLOCK_WIDTH)
                 if available_square(clicked_row, clicked_col):
-                    pygame.draw.rect(screen, BLUE, (clicked_col * BLOCK_WIDTH + offset_rec, clicked_row * BLOCK_HEIGHT + offset_rec, BLOCK_WIDTH - (2 * offset_rec), BLOCK_HEIGHT - (2 * offset_rec)))
+                    pygame.draw.rect(screen, SELECED, (clicked_col * BLOCK_WIDTH + offset_rec, clicked_row * BLOCK_HEIGHT + offset_rec, BLOCK_WIDTH - (2 * offset_rec), BLOCK_HEIGHT - (2 * offset_rec)))
                     draw_numbers()
 
 
@@ -288,12 +264,7 @@ if __name__ == '__main__':
                     if available_square(clicked_row, clicked_col):
                         number_press_event(board, 9, clicked_row, clicked_col)
 
-                if event.key == pygame.K_b:
-                    print("B is pressed")
-                    one_step_back()
-
                 if event.key == pygame.K_s:
-                    print("S is pressed")
                     display_suggestion()
 
 
